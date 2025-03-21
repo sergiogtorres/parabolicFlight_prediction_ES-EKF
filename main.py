@@ -67,7 +67,7 @@ while(cap_right.isOpened() and cap_left.isOpened()):
     succes_left, img_left = cap_left.read()
 
     circle_data  = utils.get_circle_info(img_left, img_right, lower_bound, upper_bound, pixels_val_left, pixels_val_right, camera_parameters)
-    is_detection_missing, circles_left, circles_right, mask_right, mask_left, circle_shape_left, circle_shape_right = circle_data
+    is_detection_missing, xyz_homogeneous_norm, circles_left, circles_right, mask_right, mask_left, circle_shape_left, circle_shape_right = circle_data
 
 
     ###########################
