@@ -3,6 +3,7 @@ import cv2 as cv2
 import glob
 import pickle
 
+print("double check this implementation. It might be wrong!")
 
 chessboard_size = (9, 6)
 frame_size = (640, 480)
