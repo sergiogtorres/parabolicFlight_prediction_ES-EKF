@@ -6,10 +6,11 @@ import shapes
 from matplotlib import pyplot as plt
 
 black_color = (0, 0, 0)
-no_detection_color = (245, 115, 115)[::-1]
+no_detection_color = (245, 115, 115)[::-1] #RGB to BGR
 detection_color = (72, 217, 101)[::-1]
 org_1 = (20, 50)
 org_2 = (20, 80)
+org_3 = (20, 110)
 def reproject_points(image_points, object_points, rvec, tvec, k):
     projected_points, _ = cv2.projectPoints(object_points, rvec, tvec, k, None)
     projected_points = projected_points.squeeze()
@@ -40,7 +41,7 @@ def get_circle_info(img_left, img_right, lower_bound, upper_bound, pixels_val_le
     circles_right, circle_shape_right = shapes.get_circles(img_right, mask_right)
 
     is_detection_missing = np.all(circles_right) == None or np.all(circles_left) == None
-    xyz_homogeneous_norm = None
+    xyz_homogeneous_norm_m = None
 
     if is_detection_missing:
         if print_on_screen:
@@ -56,15 +57,19 @@ def get_circle_info(img_left, img_right, lower_bound, upper_bound, pixels_val_le
 
         xyz_homogeneous = cv2.triangulatePoints(projMatrixL, projMatrixR, circles_left_corrected, circles_right_corrected)
         #xyz_homogeneous = cv2.triangulatePoints(projMatrixL, projMatrixR, circles_left_np, circles_right_np)
-        xyz_homogeneous_norm = (xyz_homogeneous / xyz_homogeneous[-1]) / 1000     # in m
-        xyz_homogeneous_norm_round = np.round(xyz_homogeneous_norm * 100, 1)  # in cm
-        xyz_string = str(xyz_homogeneous_norm_round[0, 0]) + ", " + str(xyz_homogeneous_norm_round[1, 0]) + ", " + str(
-            xyz_homogeneous_norm_round[2, 0])
+        xyz_homogeneous_norm_m = (xyz_homogeneous / xyz_homogeneous[-1]) / 1000     # in m
+        xyz_homogeneous_norm_round_cm = np.round(xyz_homogeneous_norm_m * 100, 1)  # in cm
+        xyz_string = str(xyz_homogeneous_norm_round_cm[0, 0]) + ", " + str(xyz_homogeneous_norm_round_cm[1, 0]) + ", " + str(
+            xyz_homogeneous_norm_round_cm[2, 0])
+        range_cm = np.linalg.norm(xyz_homogeneous_norm_round_cm[:3])
+        range_string = str(np.round(range_cm, 1))
 
         if print_on_screen:
             print_outlined_text(img_right, "Ball detected", org_1, 0.7, detection_color, 2)
             print_outlined_text(img_left, "Ball detections", org_1, 0.7, detection_color, 2)
-            print_outlined_text(img_right, "pos: " + xyz_string, org_2, 0.7, detection_color, 2)
-            print_outlined_text(img_left, "pos: " + xyz_string, org_2, 0.7, detection_color, 2)
+            print_outlined_text(img_right, "pos x, y, z [cm]: " + xyz_string, org_2, 0.7, detection_color, 2)
+            print_outlined_text(img_left, "pos x, y, z [cm]: " + xyz_string, org_2, 0.7, detection_color, 2)
+            print_outlined_text(img_right, "range [cm]: " + range_string, org_3, 0.7, detection_color, 2)
+            print_outlined_text(img_left, "range [cm]: " + range_string, org_3, 0.7, detection_color, 2)
 
-    return is_detection_missing, xyz_homogeneous_norm, circles_left, circles_right, mask_right, mask_left, circle_shape_left, circle_shape_right
+    return is_detection_missing, xyz_homogeneous_norm_m, circles_left, circles_right, mask_right, mask_left, circle_shape_left, circle_shape_right
