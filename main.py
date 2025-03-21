@@ -2,13 +2,13 @@ import numpy as np
 import cv2
 import pickle
 from matplotlib import pyplot as plt
+import utils
 
 # UTILITIES
 import HSV_filter as hsv
-import shapes as shape
 
 # Read data from pickle file
-with open('settings.pkl', 'rb') as f:
+with open('data/camera_settings.pkl', 'rb') as f:
     loaded_data = pickle.load(f)
 
 # Access pickled variables
@@ -28,11 +28,11 @@ print(f"upper_bound: {upper_bound}")
 
 
 with open("data/data.pkl", "rb") as f:  # "rb" = read binary mode
-    (cameraMatrixL, newCameraMatrixL, roiL, projMatrixL, distL, rectL,
-     cameraMatrixR, newCameraMatrixR, roiR, projMatrixR, distR, rectR,
-     rot, trans, essentialMatrix, fundamentalMatrix) = pickle.load(f)
+    camera_parameters = pickle.load(f)
 
-
+(cameraMatrixL, newCameraMatrixL, roiL, projMatrixL, distL, rectL,
+ cameraMatrixR, newCameraMatrixR, roiR, projMatrixR, distR, rectR,
+ rot, trans, essentialMatrix, fundamentalMatrix) = camera_parameters
 
 # Open cameras
 cap_right = cv2.VideoCapture(1)
@@ -42,11 +42,6 @@ cap_left =  cv2.VideoCapture(0)
 # https://github.com/opencv/opencv/issues/9738
 cap_right.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)  # 0.25 = Manual, 0.75 = Auto (varies by camera)
 cap_left.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0.25)  # 0.25 = Manual, 0.75 = Auto (varies by camera)
-no_detection_color = (245, 115, 115)[::-1]
-detection_color = (72, 217, 101)[::-1]
-black_color = (0, 0, 0)
-org_1 = (20, 50)
-org_2 = (20, 80)
 # Sometimes, negative values expected, other times, decimals.
 # I believe that negative numbers represent a value of 2^(-exposure) seconds
 # While positive numbers might be the exposure time as a float (depends on camera)
@@ -64,52 +59,18 @@ cap_right.set(cv2.CAP_PROP_EXPOSURE, -exposure_val_right)  # Negative values oft
 cap_left.set(cv2.CAP_PROP_EXPOSURE, -exposure_val_left)  # Negative values often work for webcams
 ##
 
-def print_outlined_text(img, text, org, scale, color, thickness_smaller):
-        cv2.putText(img, text, org, cv2.FONT_HERSHEY_SIMPLEX, scale, black_color, thickness_smaller+1)
-        cv2.putText(img, text, org, cv2.FONT_HERSHEY_SIMPLEX, scale, color, thickness_smaller)
+
 
 while(cap_right.isOpened() and cap_left.isOpened()):
 
     succes_right, img_right = cap_right.read()
     succes_left, img_left = cap_left.read()
 
+    circle_data  = utils.get_circle_info(img_left, img_right, lower_bound, upper_bound, pixels_val_left, pixels_val_right, camera_parameters)
+    is_detection_missing, circles_left, circles_right, mask_right, mask_left, circle_shape_left, circle_shape_right = circle_data
 
 
-
-    # HSV filtering:
-    mask_right, hsv_right = hsv.get_HSV_mask(img_right, lower_bound, upper_bound, pixels_val_right)
-    mask_left, hsv_left = hsv.get_HSV_mask(img_left, lower_bound, upper_bound, pixels_val_left)
-
-
-    res_right = cv2.bitwise_and(img_right, img_right, mask=mask_right)
-    res_left = cv2.bitwise_and(img_left, img_left, mask=mask_left)
-
-
-    circles_right, circle_shape_right = shape.get_circles(img_right, mask_right)
-    circles_left, circle_shape_left  = shape.get_circles(img_left, mask_left)
     ###########################
-
-
-    if np.all(circles_right) == None or np.all(circles_left) == None:
-        print_outlined_text(img_right, "No detections", org_1, 0.7, no_detection_color, 2)
-        print_outlined_text(img_left, "No detections", org_1, 0.7, no_detection_color, 2)
-
-    else:
-        print_outlined_text(img_right, "Ball detected", org_1, 0.7, detection_color, 2)
-        print_outlined_text(img_left, "Ball detections", org_1, 0.7, detection_color, 2)
-
-        circles_left_np = np.array(circles_left, dtype=float)
-        circles_right_np = np.array(circles_right, dtype=float)
-        circles_left_corrected = cv2.undistortPoints(circles_left_np, cameraMatrixL, distL, rectL, newCameraMatrixL)
-        circles_right_corrected = cv2.undistortPoints(circles_right_np, cameraMatrixR, distR, rectR, newCameraMatrixR)
-
-        xyz_homogeneous = cv2.triangulatePoints(projMatrixL, projMatrixR, circles_left_np, circles_right_np)
-        xyz_homogeneous_norm = xyz_homogeneous/xyz_homogeneous[-1]
-        xyz_homogeneous_norm_round = np.round(xyz_homogeneous_norm, 0)/10
-        xyz_string = str(xyz_homogeneous_norm_round[0,0]) + ", " + str(xyz_homogeneous_norm_round[1,0]) + ", " + str(xyz_homogeneous_norm_round[2,0])
-
-        print_outlined_text(img_right, "pos: " + xyz_string, org_2, 0.7, detection_color, 2)
-        print_outlined_text(img_left, "pos: " + xyz_string, org_2, 0.7, detection_color, 2)
 
 
     # Show the frames

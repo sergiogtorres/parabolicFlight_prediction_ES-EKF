@@ -119,10 +119,10 @@ data = {
     'upper_bound': upper_bound
 }
 # Write the data to a pickle file
-with open('settings.pkl', 'wb') as f:
+with open('data/camera_settings.pkl', 'wb') as f:
     pickle.dump(data, f)
 
-print("Data saved to settings.pkl")
+print("Data saved to camera_settings.pkl")
 
 # Terminate
 cap_right.release()
