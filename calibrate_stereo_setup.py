@@ -85,7 +85,12 @@ flags |= cv2.CALIB_FIX_INTRINSIC
 
 criteria_stereo= (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 
-retStereo, newCameraMatrixL, distL, newCameraMatrixR, distR, rot, trans, essentialMatrix, fundamentalMatrix = cv2.stereoCalibrate(objpoints, imgpoints_left, imgpoints_right, newCameraMatrixL, distL, newCameraMatrixR, distR, gray_left.shape[::-1], criteria_stereo, flags)
+(retStereo, newCameraMatrixL, distL,
+ newCameraMatrixR, distR, rot, trans,
+ essentialMatrix, fundamentalMatrix) = (
+    cv2.stereoCalibrate(objpoints, imgpoints_left, imgpoints_right,
+                        newCameraMatrixL, distL, newCameraMatrixR,
+                        distR, gray_left.shape[::-1], criteria_stereo, flags))
 
 
 

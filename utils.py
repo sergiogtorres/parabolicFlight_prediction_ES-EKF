@@ -119,3 +119,6 @@ def visualize_trajectory(x, y, z):
     plt.show()
     while plt.fignum_exists(1):  # Keeps the plot window open until manually closed
         plt.pause(0.1)
+
+
+
