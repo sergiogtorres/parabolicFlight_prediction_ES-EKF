@@ -4,6 +4,7 @@ import HSV_filter as hsv
 import shapes
 
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MultipleLocator
 
 black_color = (0, 0, 0)
 no_detection_color = (245, 115, 115)[::-1] #RGB to BGR
@@ -73,3 +74,48 @@ def get_circle_info(img_left, img_right, lower_bound, upper_bound, pixels_val_le
             print_outlined_text(img_left, "range [cm]: " + range_string, org_3, 0.7, detection_color, 2)
 
     return is_detection_missing, xyz_homogeneous_norm_m, circles_left, circles_right, mask_right, mask_left, circle_shape_left, circle_shape_right
+
+
+class CircularArrayNP:
+    def __init__(self, size, long_axis):
+        if long_axis != 1:
+            print ("long axis other than 1 Not implemented, check class CircularArrayNP!")
+        self.size = size[long_axis]
+        self.buffer = np.empty(size, dtype=float)  # Create an empty array
+        self.index = 0  # Pointer to track the current position
+
+    def __repr__(self):
+        # Return a string representation of the buffer when printed
+        return f"CircularArrayNP(buffer={self.buffer})"
+    def add_data(self, data):
+        self.buffer[:, self.index] = data
+        self.index = (self.index + 1) % self.size  # Use modulo to wrap the index
+
+    def get_latest(self):
+        return self.buffer[(self.index - 1) % self.size]  # Most recent data
+
+    def get_all_data(self):
+        # Return all data (older data will appear first)
+        return np.hstack((self.buffer[:, self.index:], self.buffer[:, :self.index]))
+
+
+
+def visualize_trajectory(x, y, z):
+    trajectory_fig = plt.figure()
+    ax = trajectory_fig.add_subplot(111, projection='3d')
+    ax.plot(x, y, z, label='Estimated')
+    ax.set_xlabel('x [m]')
+    ax.set_ylabel('y [m]')
+    ax.set_zlabel('z [m]')
+    ax.set_title('Estimated Trajectory - camera frame')
+    ax.set_xlim(0, 1)
+    ax.set_ylim(-0.8, 0.8)
+    ax.set_zlim(0, 1)
+    ax.xaxis.set_major_locator(MultipleLocator(0.1))
+    ax.yaxis.set_major_locator(MultipleLocator(0.1))
+    ax.zaxis.set_major_locator(MultipleLocator(0.1))
+    ax.legend(loc=(0.62, 0.77))
+    ax.view_init(elev=45, azim=-50)
+    plt.show()
+    while plt.fignum_exists(1):  # Keeps the plot window open until manually closed
+        plt.pause(0.1)

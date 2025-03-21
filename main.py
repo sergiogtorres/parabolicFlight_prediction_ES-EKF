@@ -61,6 +61,16 @@ cap_left.set(cv2.CAP_PROP_EXPOSURE, -exposure_val_left)  # Negative values often
 
 
 
+
+
+
+
+# Initializing Kalman filter variables
+# Other constants
+NN = 1000 # size of rolling array
+p_est = utils.CircularArrayNP([3, NN], long_axis = 1)#np.zeros([NN, 3])
+
+idx = 0
 while(cap_right.isOpened() and cap_left.isOpened()):
 
     succes_right, img_right = cap_right.read()
@@ -68,8 +78,8 @@ while(cap_right.isOpened() and cap_left.isOpened()):
 
     circle_data  = utils.get_circle_info(img_left, img_right, lower_bound, upper_bound, pixels_val_left, pixels_val_right, camera_parameters)
     is_detection_missing, xyz_homogeneous_norm, circles_left, circles_right, mask_right, mask_left, circle_shape_left, circle_shape_right = circle_data
-
-
+    if not is_detection_missing:
+        p_est.add_data(np.squeeze(xyz_homogeneous_norm[:3]))
     ###########################
 
 
@@ -84,6 +94,7 @@ while(cap_right.isOpened() and cap_left.isOpened()):
     ###################################################################################################################
 
 
+    idx += 1
 
     # Q to close
     if cv2.waitKey(1) & 0xFF == ord('q'):
@@ -91,6 +102,8 @@ while(cap_right.isOpened() and cap_left.isOpened()):
     #if cv2.waitKey(1) & 0xFF == ord('e'):
 
 
+x, y, z = p_est.get_all_data()
+utils.visualize_trajectory(x, y, z)
 
 # Terminate
 cap_right.release()
