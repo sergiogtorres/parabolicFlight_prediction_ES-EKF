@@ -46,10 +46,10 @@ for img_file_left, img_file_right in zip(img_files_left, img_files_right):
 
         objpoints.append(objp)
 
-        corners_left = cv2.cornerSubPix(gray_left, corners_left, (11, 11), (-1, -1), termination_criteria)
+        #corners_left = cv2.cornerSubPix(gray_left, corners_left, (11, 11), (-1, -1), termination_criteria)
         imgpoints_left.append(corners_left)
 
-        corners_right = cv2.cornerSubPix(gray_right, corners_right, (11, 11), (-1, -1), termination_criteria)
+        #corners_right = cv2.cornerSubPix(gray_right, corners_right, (11, 11), (-1, -1), termination_criteria)
         imgpoints_right.append(corners_right)
 
         # Draw and display the corners
