@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import pickle
+import os
 from matplotlib import pyplot as plt
 
 # UTILITIES
@@ -9,6 +10,14 @@ import shapes as shape
 
 def do_nothing(x):
     pass
+
+
+
+
+
+
+
+
 
 # Create windows
 cv2.namedWindow("HSV Adjustments")
@@ -28,6 +37,48 @@ cv2.createTrackbar("Exposure Left", "Other Adjustments", 0, 150, do_nothing)  # 
 cv2.createTrackbar("Pixels Right", "Other Adjustments", 0, 1000, do_nothing)  # Adjust range as needed
 cv2.createTrackbar("Pixels Left", "Other Adjustments", 0, 1000, do_nothing)  # Adjust range as needed
 
+
+#######################
+# Check if previous calibration is present
+
+# Read data from pickle file
+previous_config_file = 'data/camera_settings.pkl'
+if os.path.exists(previous_config_file):
+    with open(previous_config_file, 'rb') as f:
+        loaded_data = pickle.load(f)
+
+    # Access pickled variables
+    exposure_val_right = loaded_data['exposure_val_right']
+    exposure_val_left = loaded_data['exposure_val_left']
+    pixels_val_right = loaded_data['pixels_val_right']
+    pixels_val_left = loaded_data['pixels_val_left']
+    lower_bound = loaded_data['lower_bound']
+    upper_bound = loaded_data['upper_bound']
+
+    print(f"exposure_val_right: {exposure_val_right}")
+    print(f"exposure_val_left: {exposure_val_left}")
+    print(f"pixels_val_right: {pixels_val_right}")
+    print(f"pixels_val_left: {pixels_val_left}")
+    print(f"lower_bound: {lower_bound}")
+    print(f"upper_bound: {upper_bound}")
+
+
+    ###################
+    (h_min, s_min, v_min) = lower_bound
+    (h_max, s_max, v_max) = upper_bound
+    #set values if previous config found:
+    cv2.setTrackbarPos("Exposure Right", "Other Adjustments", int(exposure_val_right*10))
+    cv2.setTrackbarPos("Exposure Left", "Other Adjustments", int(exposure_val_left*10))
+
+    cv2.setTrackbarPos("Pixels Right", "Other Adjustments", int(pixels_val_right*10))
+    cv2.setTrackbarPos("Pixels Left", "Other Adjustments", int(pixels_val_left*10))
+
+    cv2.setTrackbarPos("H Min", "HSV Adjustments", int(h_min))
+    cv2.setTrackbarPos("H Max", "HSV Adjustments", int(h_max))
+    cv2.setTrackbarPos("S Min", "HSV Adjustments", int(s_min))
+    cv2.setTrackbarPos("S Max", "HSV Adjustments", int(s_max))
+    cv2.setTrackbarPos("V Min", "HSV Adjustments", int(v_min))
+    cv2.setTrackbarPos("V Max", "HSV Adjustments", int(v_max))
 
 
 
